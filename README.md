@@ -34,3 +34,41 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+# CRM Pro (Next.js + Supabase Migration)
+
+A production-ready Customer Relationship Management (CRM) platform migrated from a legacy MERN stack to Next.js App Router, TypeScript, and Supabase PostgreSQL.
+
+## Tech Stack
+* Framework: Next.js (App Router)
+* Language: TypeScript
+* Database: PostgreSQL (Supabase)
+* Authentication: Supabase Auth (@supabase/ssr)
+* Styling: Tailwind CSS
+* UI Components: shadcn/ui, Lucide React
+* Validation: Zod, React Hook Form
+* Testing: Playwright
+
+## Local Development Setup
+
+1. Install dependencies
+   npm install
+
+2. Configure environment variables
+   cp .env.example .env.local
+
+3. Run database migrations via Supabase CLI
+   supabase init
+   supabase start
+   supabase db push
+
+4. Start the development server
+   npm run dev
+
+## Architecture Notes
+* Server Components fetch data directly from Supabase to prevent N+1 queries.
+* Server Actions handle all database mutations (CRUD operations).
+* Row Level Security (RLS) policies enforce data isolation per user at the PostgreSQL level.
+* Next.js Middleware protects all `/dashboard` routes from unauthenticated access.
