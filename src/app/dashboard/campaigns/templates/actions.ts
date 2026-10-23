@@ -106,3 +106,19 @@ export async function updateTemplate(id: string, formData: FormData) {
   revalidatePath("/dashboard/campaigns/templates")
   redirect("/dashboard/campaigns/templates")
 }
+
+export async function getTemplateById(id: string) {
+    const supabase = await createClient()
+    
+    const { data, error } = await supabase
+        .from("campaign_templates")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+    if (error) {
+        console.error("Error fetching template:", error)
+        return null
+    }
+    return data
+}

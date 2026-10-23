@@ -1,10 +1,19 @@
 export const instant = false
 
 import { connection } from "next/server"
-import { Calendar, Download, FileText, Save, Clock, ArrowUpDown } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
+import { ReportControls } from "../ReportControls"
 
-export default async function AccountsReportsPage() {
+export default async function AccountsReportsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
     await connection()
+
+    // URL theke filter range nibo
+    const resolvedParams = await searchParams
+    const range = typeof resolvedParams.range === 'string' ? resolvedParams.range : 'Last 7 days'
 
     return (
         <div className="min-h-full bg-gray-50 p-6">
@@ -15,41 +24,7 @@ export default async function AccountsReportsPage() {
                     <p className="text-sm text-gray-500">Account growth and segmentation</p>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                        {['Last 7 days', 'Last 30 days', 'Last 90 days', 'Year to date', 'All time'].map((filter) => (
-                            <button
-                                key={filter}
-                                className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                            >
-                                {filter}
-                            </button>
-                        ))}
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                            <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                            Custom
-                        </button>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">
-                            <Download className="w-4 h-4 mr-2 text-gray-400" />
-                            Export CSV
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">
-                            <FileText className="w-4 h-4 mr-2 text-gray-400" />
-                            Export PDF
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">
-                            <Save className="w-4 h-4 mr-2 text-gray-400" />
-                            Save
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">
-                            <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                            Schedule
-                        </button>
-                    </div>
-                </div>
+                <ReportControls />
 
                 <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 min-h-[300px]">
                     <h3 className="text-sm font-bold text-gray-900 mb-6">New Accounts by Month</h3>

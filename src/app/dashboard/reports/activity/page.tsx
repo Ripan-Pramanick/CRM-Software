@@ -1,10 +1,19 @@
 export const instant = false
 
 import { connection } from "next/server"
-import { Calendar, Download, FileText, Save, Clock, ChevronDown } from "lucide-react"
+import { ChevronDown } from "lucide-react"
+import { ReportControls } from "../ReportControls"
 
-export default async function ActivityReportsPage() {
+export default async function ActivityReportsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
     await connection()
+
+    // URL from the filter range
+    const resolvedParams = await searchParams
+    const range = typeof resolvedParams.range === 'string' ? resolvedParams.range : 'Last 7 days'
 
     return (
         <div className="min-h-full bg-gray-50 p-6">
@@ -15,42 +24,15 @@ export default async function ActivityReportsPage() {
                     <p className="text-sm text-gray-500">Tasks and activities analytics</p>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                        {['Last 7 days', 'Last 30 days', 'Last 90 days', 'Year to date', 'All time'].map((filter) => (
-                            <button
-                                key={filter}
-                                className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                            >
-                                {filter}
-                            </button>
-                        ))}
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                            <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                            Custom
-                        </button>
-                        <button className="flex items-center justify-between px-4 py-1.5 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors min-w-[160px] ml-2">
+                {/* Ekhane ReportControls add kora holo */}
+                <div className="flex flex-col gap-4">
+                    <ReportControls />
+                    
+                   
+                    <div>
+                        <button className="flex items-center justify-between px-4 py-1.5 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors min-w-[160px]">
                             Saved reports...
                             <ChevronDown className="w-4 h-4 ml-2" />
-                        </button>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">
-                            <Download className="w-4 h-4 mr-2 text-gray-400" />
-                            Export CSV
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">
-                            <FileText className="w-4 h-4 mr-2 text-gray-400" />
-                            Export PDF
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">
-                            <Save className="w-4 h-4 mr-2 text-gray-400" />
-                            Save
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 transition-colors">
-                            <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                            Schedule
                         </button>
                     </div>
                 </div>

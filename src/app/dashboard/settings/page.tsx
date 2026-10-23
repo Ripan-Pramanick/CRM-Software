@@ -6,7 +6,7 @@ import { ArrowRightLeft, DollarSign, RefreshCw, Calculator } from "lucide-react"
 export default function CurrencyConverterPage() {
   const [amount, setAmount] = useState<number>(100)
   const [fromCurrency, setFromCurrency] = useState('USD')
-  const [toCurrency, setToCurrency] = useState('BDT')
+  const [toCurrency, setToCurrency] = useState('INR')
   const [exchangeRate, setExchangeRate] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string>('')

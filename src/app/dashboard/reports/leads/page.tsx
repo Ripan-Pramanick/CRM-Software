@@ -1,10 +1,19 @@
 export const instant = false
 
 import { connection } from "next/server"
-import { Calendar, Download, FileText, Save, Clock, ArrowUpDown } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
+import { ReportControls } from "../ReportControls"
 
-export default async function LeadsReportsPage() {
+export default async function LeadsReportsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
     await connection()
+
+    
+    const resolvedParams = await searchParams
+    const range = typeof resolvedParams.range === 'string' ? resolvedParams.range : 'Last 7 days'
 
     return (
         <div className="min-h-full bg-white text-gray-900 p-6">
@@ -15,41 +24,7 @@ export default async function LeadsReportsPage() {
                     <p className="text-sm text-gray-900">Lead generation and contact analytics</p>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                        {['Last 7 days', 'Last 30 days', 'Last 90 days', 'Year to date', 'All time'].map((filter) => (
-                            <button
-                                key={filter}
-                                className="px-4 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors"
-                            >
-                                {filter}
-                            </button>
-                        ))}
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors">
-                            <Calendar className="w-4 h-4 mr-2 text-gray-900" />
-                            Custom
-                        </button>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors">
-                            <Download className="w-4 h-4 mr-2 text-gray-900" />
-                            Export CSV
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors">
-                            <FileText className="w-4 h-4 mr-2 text-gray-900" />
-                            Export PDF
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors">
-                            <Save className="w-4 h-4 mr-2 text-gray-900" />
-                            Save
-                        </button>
-                        <button className="flex items-center px-4 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors">
-                            <Clock className="w-4 h-4 mr-2 text-gray-900" />
-                            Schedule
-                        </button>
-                    </div>
-                </div>
+                <ReportControls />
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 h-32 flex flex-col justify-center">
