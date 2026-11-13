@@ -1,0 +1,96 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Runs 3 times daily at 03:17, 11:17, and 19:17 UTC
+    - cron: '17 3,11,19 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping-supabase:
+    name: Query public.keep_alive via REST API
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Execute Read-Only Keep-Alive Ping
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+
+          # 1. Validate that required secrets are configured without printing values
+          if [ -z "${SUPABASE_URL:-}" ]; then
+            echo "::error::Missing GitHub Secret: SUPABASE_URL is not set or empty."
+            exit 1
+          fi
+
+          if [ -z "${SUPABASE_PUBLISHABLE_KEY:-}" ]; then
+            echo "::error::Missing GitHub Secret: SUPABASE_PUBLISHABLE_KEY is not set or empty."
+            exit 1
+          fi
+
+          # 2. Explicitly mask secrets and normalized URL in workflow logs
+          echo "::add-mask::${SUPABASE_URL}"
+          echo "::add-mask::${SUPABASE_PUBLISHABLE_KEY}"
+
+          BASE_URL="${SUPABASE_URL%/}"
+          echo "::add-mask::${BASE_URL}"
+
+          # Reject accidental use of service_role secret key if detectable in JWT payload
+          if [[ "${SUPABASE_PUBLISHABLE_KEY}" == sb_secret_* ]]; then
+            echo "::error::Invalid key type: SUPABASE_PUBLISHABLE_KEY appears to be a secret key (sb_secret_*). Use only the anon/publishable key."
+            exit 1
+          fi
+
+          ENDPOINT="${BASE_URL}/rest/v1/keep_alive?select=id,status&limit=1"
+          RESPONSE_FILE="$(mktemp)"
+          trap 'rm -f "${RESPONSE_FILE}"' EXIT
+
+          MAX_RETRIES=3
+          RETRY_DELAY=5
+          ATTEMPT=1
+
+          echo "Starting Supabase keep-alive check at $(date -u +"%Y-%m-%dT%H:%M:%SZ")..."
+
+          while [ "${ATTEMPT}" -le "${MAX_RETRIES}" ]; do
+            echo "Attempt ${ATTEMPT} of ${MAX_RETRIES}: Sending SELECT request to public.keep_alive..."
+
+            HTTP_STATUS=$(curl --silent --show-error --location \
+              --max-time 15 \
+              --output "${RESPONSE_FILE}" \
+              --write-out "%{http_code}" \
+              --header "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+              --header "Authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}" \
+              --header "Accept: application/json" \
+              "${ENDPOINT}" 2>/dev/null || echo "000")
+
+            if [ "${HTTP_STATUS}" = "200" ]; then
+              ROW_COUNT=$(jq 'if type == "array" then length else 0 end' "${RESPONSE_FILE}" 2>/dev/null || echo "0")
+
+              if [ "${ROW_COUNT}" -ge 1 ]; then
+                RECORD_STATUS=$(jq -r '.[0].status // "unknown"' "${RESPONSE_FILE}")
+                echo "✅ Success: HTTP 200 received from public.keep_alive (row count: ${ROW_COUNT}, status: '${RECORD_STATUS}')."
+                echo "Supabase database activity recorded at $(date -u +"%Y-%m-%dT%H:%M:%SZ")."
+                exit 0
+              else
+                echo "::warning::Attempt ${ATTEMPT} returned HTTP 200, but 0 rows were returned. Verify that public.keep_alive has 1 row and the anon SELECT RLS policy is enabled."
+              fi
+            else
+              echo "::warning::Attempt ${ATTEMPT} failed with HTTP status ${HTTP_STATUS}."
+            fi
+
+            if [ "${ATTEMPT}" -lt "${MAX_RETRIES}" ]; then
+              echo "Waiting ${RETRY_DELAY} seconds before retry..."
+              sleep "${RETRY_DELAY}"
+              RETRY_DELAY=$((RETRY_DELAY * 2))
+            fi
+
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+
+          echo "::error::Keep-alive check failed after ${MAX_RETRIES} attempts (last HTTP status: ${HTTP_STATUS})."
+          exit 1
